@@ -5,6 +5,9 @@
 // ASIO is somewhat particular about when it gets included -- it wants to be the
 // first to include <windows.h> -- so we try to include it before everything
 // else.
+#pragma once
+//change delete this one
+
 #include "util/asio.h"
 
 #include "bucket/Bucket.h"
@@ -472,6 +475,20 @@ TEST_CASE("merging bucket entries", "[bucket]")
         CHECK(countEntries(b1) == 1);
     }
 
+	SECTION("dead alias entry annihilates live alias entry")
+	{
+		liveEntry.data.type(ALIAS);
+		liveEntry.data.alias() = LedgerTestUtils::generateValidAliasEntry(10);
+		deadEntry.type(ALIAS);
+		deadEntry.alias().accountID = liveEntry.data.alias().accountID;
+		deadEntry.alias().aliasID = liveEntry.data.alias().aliasID;
+		std::vector<LedgerEntry> live{ liveEntry };
+		std::vector<LedgerKey> dead{ deadEntry };
+		std::shared_ptr<Bucket> b1 =
+			Bucket::fresh(app->getBucketManager(), live, dead);
+		CHECK(countEntries(b1) == 1);
+	}
+
     SECTION("dead offer entry annihilates live offer entry")
     {
         liveEntry.data.type(OFFER);
@@ -835,11 +852,13 @@ TEST_CASE("bucket persistence over app restart", "[bucket][bucketpersist]")
     }
 }
 
+
 TEST_CASE("checkdb succeeding", "[bucket][checkdb]")
 {
     VirtualClock clock;
     Config cfg(getTestConfig());
     cfg.ARTIFICIALLY_GENERATE_LOAD_FOR_TESTING = true;
+	//cfg.FORCE_SCP = true;
     Application::pointer app = Application::create(clock, cfg);
     app->start();
 

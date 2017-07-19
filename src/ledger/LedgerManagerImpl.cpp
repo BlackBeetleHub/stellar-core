@@ -6,6 +6,7 @@
 #include "DataFrame.h"
 #include "OfferFrame.h"
 #include "TrustFrame.h"
+#include "ledger/AliasFrame.h"
 #include "bucket/BucketManager.h"
 #include "crypto/Hex.h"
 #include "crypto/KeyUtils.h"
@@ -24,7 +25,7 @@
 #include "main/Config.h"
 #include "overlay/OverlayManager.h"
 #include "util/Logging.h"
-#include "util/format.h"
+#include "lib/util/format.h"
 #include "util/make_unique.h"
 
 #include "medida/counter.h"
@@ -825,7 +826,10 @@ LedgerManagerImpl::checkDbState()
     offers = OfferFrame::loadAllOffers(getDatabase());
     std::unordered_map<AccountID, std::vector<DataFrame::pointer>> datas;
     datas = DataFrame::loadAllData(getDatabase());
-
+	std::unordered_map<AccountID, std::vector<AliasFrame::pointer>> aliases;
+	aliases = AliasFrame::loadAllAliases(getDatabase());
+	//add LoadAllAlias
+	
     for (auto& i : aData)
     {
         auto const& a = i.second->getAccount();
@@ -848,6 +852,12 @@ LedgerManagerImpl::checkDbState()
         {
             actualSubEntries += itDatas->second.size();
         }
+
+		auto itAliases = aliases.find(i.first);
+		if (itAliases != aliases.end())
+		{
+			actualSubEntries += itAliases->second.size();
+		}
 
         if (a.numSubEntries != (uint32)actualSubEntries)
         {

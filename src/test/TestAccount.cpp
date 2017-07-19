@@ -9,6 +9,7 @@
 #include "main/Application.h"
 #include "test/TestExceptions.h"
 #include "test/TxTests.h"
+#include "util/Logging.h"
 
 namespace stellar
 {
@@ -84,6 +85,12 @@ TestAccount::create(SecretKey const& secretKey, uint64_t initialBalance)
     }
 
     REQUIRE(loadAccount(secretKey.getPublicKey(), mApp));
+	Database& db = mApp.getDatabase();
+	Asset asset;
+	asset.type(ASSET_TYPE_CREDIT_ALPHANUM4);
+	const char * code = "UKD";
+	strToAssetCode(asset.alphaNum4().assetCode, code);
+	REQUIRE(TrustFrame::loadTrustLine(secretKey.getPublicKey(), asset, db));
     return TestAccount{mApp, secretKey};
 }
 
@@ -91,6 +98,18 @@ TestAccount
 TestAccount::create(std::string const& name, uint64_t initialBalance)
 {
     return create(getAccount(name.c_str()), initialBalance);
+}
+
+void TestAccount::manageAlias(AccountID aliasID, bool isDelete)
+{
+	try
+	{
+		applyTx(tx({ manageAliasOpTx(aliasID, isDelete) }),mApp);
+	}
+	catch (...)
+	{
+		LOG(INFO) << "ERROR manageAlias";
+	}
 }
 
 void

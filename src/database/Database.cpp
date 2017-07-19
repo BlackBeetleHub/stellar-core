@@ -17,6 +17,7 @@
 #include "bucket/BucketManager.h"
 #include "herder/Herder.h"
 #include "ledger/AccountFrame.h"
+#include "ledger/AliasFrame.h"
 #include "ledger/DataFrame.h"
 #include "ledger/LedgerHeaderFrame.h"
 #include "ledger/OfferFrame.h"
@@ -292,6 +293,7 @@ Database::initialize()
     AccountFrame::dropAll(*this);
     OfferFrame::dropAll(*this);
     TrustFrame::dropAll(*this);
+	AliasFrame::dropAll(*this); // my_change: Add drop tabel aliases
     OverlayManager::dropAll(*this);
     PersistentState::dropAll(*this);
     ExternalQueue::dropAll(*this);

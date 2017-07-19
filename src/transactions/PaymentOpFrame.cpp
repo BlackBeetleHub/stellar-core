@@ -9,6 +9,7 @@
 #include "ledger/LedgerDelta.h"
 #include "ledger/OfferFrame.h"
 #include "ledger/TrustFrame.h"
+#include "ledger/AliasFrame.h"
 #include "main/Application.h"
 #include "medida/meter.h"
 #include "medida/metrics_registry.h"
@@ -48,9 +49,12 @@ PaymentOpFrame::doApply(Application& app, LedgerDelta& delta,
         return true;
     }
 
+	Database& db = app.getDatabase();
+
+
     // build a pathPaymentOp
     Operation op;
-    op.sourceAccount = mOperation.sourceAccount;
+	op.sourceAccount = mOperation.sourceAccount;
     op.body.type(PATH_PAYMENT);
     PathPaymentOp& ppOp = op.body.pathPaymentOp();
     ppOp.sendAsset = mPayment.asset;
@@ -66,7 +70,6 @@ PaymentOpFrame::doApply(Application& app, LedgerDelta& delta,
     opRes.tr().type(PATH_PAYMENT);
     PathPaymentOpFrame ppayment(op, opRes, mParentTx);
     ppayment.setSourceAccountPtr(mSourceAccount);
-
     if (!ppayment.doCheckValid(app) ||
         !ppayment.doApply(app, delta, ledgerManager))
     {
